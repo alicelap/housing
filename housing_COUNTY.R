@@ -12,13 +12,12 @@ data <- data %>%
   filter(program_label == "Public Housing" & !(is.na(total_units))) %>%
   select(states, entities, total_units, pct_occupied, people_per_unit, people_total, state) %>%
   mutate(
-    GEOID = str_sub(entities,-5,-1),
-    GEO.id2 = ifelse(str_sub(GEOID,1,1)==0, str_sub(GEOID,2,5),str_sub(GEOID,1,5))
+    GEOID = str_sub(entities,-5,-1)
     ) %>%
-  filter(!(GEO.id2=="78999") & !(GEO.id2=="66999")) # removes Guam and VI
+  filter(!(GEOID=="78999") & !(GEOID=="66999")) # removes Guam and VI
 
 # join of the two data_frames
-data_combined <- full_join(data_ACS_county, data, by =("GEO.id2"))
+data_combined <- full_join(data_ACS_county, data, by =("GEOID"))
 
 # Fonds de carte 
 mtq_county <- readOGR(dsn ="/Users/Alice/Downloads/tl_2012_us_county",layer = "tl_2012_us_county")
@@ -29,7 +28,7 @@ cols <- carto.pal(pal1 = "green.pal", # first color gradient
                   n2 = 2) # number of colors in the second gradiant
 
 # Impression du fond de carte
-plot(mtq_county, border = "bl",lwd = 0.0005)
+plot(mtq_county, border = "black",lwd = 0.05)
 
 choroLayer(spdf = mtq_county, # SpatialPolygonsDataFrame des communes
            df = data, # data frame qui contient la variable
