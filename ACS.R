@@ -3,10 +3,10 @@ library("rgdal")
 library(cartography)
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS")
+
+# data units 
 data_unit <- read.csv("ACS_16_5YR_B25003_with_ann.csv", header=T, sep=";")
-
 colnames(data_unit)
-
 data_unit <- data_unit %>%
   mutate(
     pct_owner_unit = HD01_VD02/HD01_VD01*100, 
@@ -16,6 +16,7 @@ data_unit <- data_unit %>%
     state = str_sub(GEOID,1,2),
     )
 
+# data population 
 data_pop <- read.csv("ACS_16_5YR_B25026_with_ann.csv", header=T, sep=";")
 colnames(data_pop)
 data_pop <- data_pop %>%

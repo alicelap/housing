@@ -28,7 +28,7 @@ cols <- carto.pal(pal1 = "green.pal", # first color gradient
                   n2 = 2) # number of colors in the second gradiant
 
 # Impression du fond de carte
-plot(mtq_county, border = "black",lwd = 0.05)
+plot(mtq_county, border = "black",lwd = 0.5)
 
 choroLayer(spdf = mtq_county, # SpatialPolygonsDataFrame des communes
            df = data, # data frame qui contient la variable
