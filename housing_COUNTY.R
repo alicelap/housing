@@ -6,8 +6,6 @@ library(cartography)
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
 data <- read.csv("COUNTY_2012.csv", header = T, sep = ";")
 
-colnames(data)
-
 data <- data %>%
   filter(program_label == "Public Housing" & !(is.na(total_units))) %>%
 # & !(states=="PR Puerto Rico") & !(states == "AK Alaska")) 

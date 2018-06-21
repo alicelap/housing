@@ -5,7 +5,6 @@ library(cartography)
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS")
 data_unit <- read.csv("ACS_16_5YR_B25003_with_ann.csv", header=T, sep=";")
 
-colnames(data_unit)
 data_unit <- data_unit %>%
   mutate(
     pct_owner_unit = HD01_VD02/HD01_VD01*100, 
