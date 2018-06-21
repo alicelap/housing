@@ -2,36 +2,46 @@ library(tidyverse)
 library(openxlsx)
 library("rgdal")
 library(cartography)
+library(plyr)
+library(RColorBrewer)
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
 data <- read.csv("COUNTY_2012.csv", header = T, sep = ";")
 
 data <- data %>%
   filter(program_label == "Public Housing" & !(is.na(total_units))) %>%
-# & !(states=="PR Puerto Rico") & !(states == "AK Alaska")) 
   select(states, entities, total_units, pct_occupied, people_per_unit, people_total, state) %>%
   mutate(
-    GEO.id2 = str_sub(entities,-5,-1),
-    GEO.id2 = ifelse(str_sub(GEO.id2,1,1)==0, str_sub(GEO.id2,2,5),str_sub(GEO.id2,1,5))
+    GEOID = str_sub(entities,-5,-1),
+    GEO.id2 = ifelse(str_sub(GEOID,1,1)==0, str_sub(GEOID,2,5),str_sub(GEOID,1,5))
     ) %>%
-  filter()
+  filter(!(GEO.id2=="78999") & !(GEO.id2=="66999")) # removes Guam and VI
 
 # join of the two data_frames
 data_combined <- full_join(data_ACS_county, data, by =("GEO.id2"))
 
-
-data_combined %>%
-  filter(is.na(HD01_VD01.x)) # NA sur GU Guam et VI Virgin Islands
-
-data_combined %>%
-  mutate(population_totale = sum(HD01_VD01.x, na.rm = T)) 
-# population totale = pop US hors PR et AK
-
-sub_sample <- data_combined %>%
-  filter(is.na(pct_occupied)) %>%
-  mutate(pop_no_info = sum(HD01_VD01.x))
-# pop manquante dans PSH = 13,7% de la pop totale
-
+# Fonds de carte 
 mtq_county <- readOGR(dsn ="/Users/Alice/Downloads/tl_2012_us_county",layer = "tl_2012_us_county")
+
+cols <- carto.pal(pal1 = "green.pal", # first color gradient
+                  n1 = 3, # number of colors in the first gradiant
+                  pal2 = "red.pal", # second color gradient
+                  n2 = 2) # number of colors in the second gradiant
+
+# Impression du fond de carte
+plot(mtq_county, border = "bl",lwd = 0.0005)
+
+choroLayer(spdf = mtq_county, # SpatialPolygonsDataFrame des communes
+           df = data, # data frame qui contient la variable
+           dfid = "GEOID",     
+           var = "pct_occupied", # la variable que l'on représente
+           breaks = c(0,20,40,60,80,100), # list of breaks
+           col = cols, # colors 
+           border = "grey20", # color of the polygons borders
+           lwd = 0.0005, # width of the borders
+           legend.pos = "bottomleft", # position of the legend
+           legend.title.txt = "Grands logements", # title of the legend
+           legend.values.rnd = 2, # number of decimal in the legend values
+           add = TRUE) # add the layer to the current plot
 
 
