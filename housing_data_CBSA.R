@@ -30,16 +30,17 @@ cols <- carto.pal(pal1 = "green.pal", # first color gradient
 # Impression du fond de carte
 plot(mtq_CBSA, border = "black",lwd = 0.5)
 
-choroLayer(spdf = mtq_county, # SpatialPolygonsDataFrame des communes
+choroLayer(spdf = mtq_CBSA, # SpatialPolygonsDataFrame des communes
+           spdfid ="GEOID",
            df = data, # data frame qui contient la variable
            dfid = "GEOID",     
            var = "pct_occupied", # la variable que l'on représente
-           breaks = c(0,20,40,60,80,100), # list of breaks
            col = cols, # colors 
+           breaks = c(50,60,70,80,90,100),
            border = "grey20", # color of the polygons borders
            lwd = 0.0005, # width of the borders
            legend.pos = "bottomleft", # position of the legend
-           legend.title.txt = "Grands logements", # title of the legend
+           legend.title.txt = "Title legend", # title of the legend
            legend.values.rnd = 2, # number of decimal in the legend values
            add = TRUE) # add the layer to the current plot
 

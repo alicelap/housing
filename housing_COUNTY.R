@@ -31,6 +31,7 @@ cols <- carto.pal(pal1 = "green.pal", # first color gradient
 plot(mtq_county, border = "black",lwd = 0.5)
 
 choroLayer(spdf = mtq_county, # SpatialPolygonsDataFrame des communes
+           spdfid ="GEOID",
            df = data, # data frame qui contient la variable
            dfid = "GEOID",     
            var = "pct_occupied", # la variable que l'on représente
