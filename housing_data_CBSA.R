@@ -1,11 +1,41 @@
 library(tidyverse)
-library(openxlsx)
-library(cartography)
 library("rgdal")
+library(RColorBrewer)
+library(sf)
+
+#  BASE ACS 
+
+setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS_CBSA")
+
+data_units <- read_csv2("ACS_16_5YR_B25003_with_ann.csv", col_names=T)
+
+colnames(data_units)
+data_units <- data_units %>%
+  mutate(
+    pct_owner_units = HD01_VD02/HD01_VD01*100, 
+    pct_renter_units= HD01_VD03/HD01_VD01*100, 
+    total_units=pct_renter_units + pct_owner_units,
+    GEOID = str_sub(GEO.id,-5,-1)
+  ) 
+
+data_pop <- read_csv2("ACS_16_5YR_B25033_with_ann.csv", col_names=T)
+colnames(data_pop)
+data_pop <- data_pop %>%
+  select("GEO.id",c(3:7),c(18:19)) %>%
+  mutate(
+    pct_owner_pop = HD01_VD02/HD01_VD01*100, 
+    pct_renter_pop= HD01_VD08/HD01_VD01*100, 
+    total_pop=pct_renter_pop + pct_owner_pop,
+    GEOID = str_sub(GEO.id,-5,-1)
+  )
+
+# join
+data_ACS_CBSA <- left_join(data_pop, data_units, by=c("GEO.id","GEO.display-label", "GEOID"))
+
+# BASE PSH 
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
-data <- read.csv("CBSA_2012.csv", header = T, sep = ";")
-# data <- read_csv2("CBSA_2012.csv", col_names=T)
+data <- read_csv2("CBSA_2012.csv", col_names=T)
 
 colnames(data)   
 
@@ -17,12 +47,18 @@ data <- data %>%
     GEOID = str_sub(entities,1,5)
     )
 
+# BASE FINALE
+
 # join of the two data_frames
 data_combined_CBSA <- full_join(data_ACS_CBSA, data, by =("GEOID"))
 
 # Fonds de carte 
-mtq_CBSA <- readOGR(dsn ="/Users/Alice/Downloads/tl_2012_us_cbsa",layer = "tl_2012_us_cbsa")
+mtq_CBSA <- readOGR(dsn ="/Users/Alice/Downloads/tl_2012_us_cbsa",layer = "")
 
+mtq_CBSA <- read_sf(system.file("/Users/Alice/Downloads/tl_2012_us_cbsa/tl_2012_us_cbsa.shp",package = "sf"), 
+              quiet = TRUE,  
+              stringsAsFactors = FALSE
+              )
 cols <- carto.pal(pal1 = "green.pal", # first color gradient
                   n1 = 3, # number of colors in the first gradiant
                   pal2 = "red.pal", # second color gradient
