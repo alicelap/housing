@@ -7,6 +7,7 @@ library(RColorBrewer)
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
 data <- read.csv("COUNTY_2012.csv", header = T, sep = ";")
+# data <- read_csv2("COUNTY_2012.csv", col_names=T)
 
 data <- data %>%
   filter(program_label == "Public Housing" & !(is.na(total_units))) %>%

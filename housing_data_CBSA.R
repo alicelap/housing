@@ -5,6 +5,7 @@ library("rgdal")
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
 data <- read.csv("CBSA_2012.csv", header = T, sep = ";")
+# data <- read_csv2("CBSA_2012.csv", col_names=T)
 
 colnames(data)   
 

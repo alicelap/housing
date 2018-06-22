@@ -6,6 +6,8 @@ setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS")
 
 # data units 
 data_unit <- read.csv("ACS_16_5YR_B25003_with_ann.csv", header=T, sep=";")
+# data_unit <- read_csv2("ACS_16_5YR_B25003_with_ann.csv", col_names=T)
+
 colnames(data_unit)
 data_unit <- data_unit %>%
   mutate(
@@ -18,6 +20,8 @@ data_unit <- data_unit %>%
 
 # data population 
 data_pop <- read.csv("ACS_16_5YR_B25026_with_ann.csv", header=T, sep=";")
+# data_pop <- read_csv2("ACS_16_5YR_B25026_with_ann.csv", col_names=T)
+
 colnames(data_pop)
 data_pop <- data_pop %>%
   select(c(1:7),c(20:21)) %>%
