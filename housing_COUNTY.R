@@ -3,6 +3,8 @@ library(RColorBrewer)
 library("rgdal")
 library(sf)
 
+# DATA ACS 
+
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS")
 
 data_unit <- read_csv2("ACS_16_5YR_B25003_with_ann.csv", col_names=T)
@@ -30,6 +32,7 @@ data_pop <- data_pop %>%
 
 data_ACS_county <- left_join(data_pop, data_unit, by=c("GEOID", "GEO.id2","state","GEO.id","GEO.display-label"))
 
+# DATA PSH 
 
 setwd("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH")
 data <- read_csv2("COUNTY_2012.csv", col_names=T)
@@ -42,8 +45,28 @@ data <- data %>%
     ) %>%
   filter(!(GEOID=="78999") & !(GEOID=="66999")) # removes Guam and VI
 
+# DATA TOTAL 
+
 # join of the two data_frames
 data_combined <- full_join(data_ACS_county, data, by =("GEOID"))
+
+# REPRESENTATION GEOGRAPHIQUE
+
+# GGPLOT 
+
+# Fonds de carte
+mtq_CBSA <- read_sf(
+  dsn = "/Users/Alice/Downloads/tl_2012_us_county", layer = "tl_2012_us_county",
+  quiet = TRUE,
+  stringsAsFactors = FALSE
+)
+
+ggplot() +
+  geom_sf(data = mtq_CBSA$geometry) + 
+  geom_sf(mapping=aes()data = data$pct_occupied)
+
+
+# CARTOGRAPHY 
 
 # Fonds de carte 
 mtq_county <- readOGR(dsn ="/Users/Alice/Downloads/tl_2012_us_county",layer = "tl_2012_us_county")
