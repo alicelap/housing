@@ -41,29 +41,26 @@ The variable of interest are :
 
 ##### Ocupied housing units by tenure
 
-This first data set provides information on tenure. The available variables are :   
-GEO.id2	Id2    
-GEO.display-label	Geography  
-HD01_VD01	Estimate; Total:  
-HD02_VD01	Margin of Error; Total:  
-HD01_VD02	Estimate; Total: - Owner occupied  
-HD02_VD02	Margin of Error; Total: - Owner occupied  
-HD01_VD03	Estimate; Total: - Renter occupied  
-HD02_VD03	Margin of Error; Total: - Renter occupied 
+This first data set provides information on tenure. 
 
-I only used the estimates and ignored the margins of error. 
 ```{r data_units_county, include=F}
-data_unit_county <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS/ACS_16_5YR_B25003_with_ann.csv", col_names = T)
+data_unit_county <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/ACS_16_5YR_B25003_county.csv", col_names=T)
 colnames(data_unit_county)
 ```
 
 ```{r first changes to data_units_county}
 data_unit_county <- data_unit_county %>%
+  select(-c(starts_with("HD02_"))) %>%
+  rename(
+    total_units = HD01_VD01,
+    total_units_owner = HD01_VD02,
+    total_units_renter = HD01_VD03
+    ) %>%
   mutate(
-    pct_owner_unit = HD01_VD02 / HD01_VD01 * 100, # percentage of owner occupied units
-    pct_renter_unit = HD01_VD03 / HD01_VD01 * 100, # percentage of renter occupied units
-    total_unit = pct_renter_unit + pct_owner_unit, # check
-    GEOID = str_sub(GEO.id, -5, -1), # for the join
+    pct_owner_unit = total_units_owner/total_units*100,   # percentage of owner occupied units
+    pct_renter_unit = total_units_renter/total_units*100, # percentage of renter occupied units
+    pct_tot_unit = pct_renter_unit + pct_owner_unit,      # check
+    GEOID = str_sub(GEO.id,-5,-1)                         # for the join
   )
 ```
 
@@ -75,31 +72,25 @@ head(data_unit_county)
 
 This second data set provides information on the total population in occupied housing units by tenure by year householder moved into unit. However, only the broad estimates, which ignored the time dimension, were kept so as to remain consistent with the 2012-2016 data above. 
 
-The variables of interest are :    
-GEO.id2	Id2  
-GEO.display-label	Geography  
-HD01_VD01	Estimate; Total population in occupied housing units  
-HD02_VD01	Margin of Error; Total population in occupied housing units  
-HD01_VD02	Estimate; Owner occupied   
-HD02_VD02	Margin of Error; Owner occupied  
-HD01_VD09	Estimate; Renter occupied  
-HD02_VD09	Margin of Error; Renter occupied  
-
-Again, the "margins of error" were not taken into account. 
 
 ```{r data_pop_county, include=FALSE}
-data_pop_county <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS/ACS_16_5YR_B25026_with_ann.csv", col_names = T)
+data_pop_county <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/ACS_16_5YR_B25026_county.csv", col_names=T)
 colnames(data_pop_county)
 ```
 
 ```{r first changes to data_pop_county}
 data_pop_county <- data_pop_county %>%
-  select(c(1:7), c(20:21)) %>%
+  select(c(1:7),c(20), -c(starts_with("HD02_"))) %>%
+  rename(
+    total_pop = HD01_VD01,
+    total_pop_owner = HD01_VD02,
+    total_pop_renter = HD01_VD09
+  ) %>%
   mutate(
-    pct_owner_pop = HD01_VD02 / HD01_VD01 * 100, # percentage of owner population
-    pct_renter_pop = HD01_VD09 / HD01_VD01 * 100, # percentage of renter population
-    total_pop = pct_renter_pop + pct_owner_pop, # check
-    GEOID = str_sub(GEO.id, -5, -1), # for the join
+    pct_owner_pop = total_pop_owner/total_pop*100,  # percentage of owner population
+    pct_renter_pop= total_pop_renter/total_pop*100, # percentage of renter population
+    pct_tot_pop =pct_renter_pop + pct_owner_pop,    # check
+    GEOID = str_sub(GEO.id,-5,-1)                   # for the join
   )
 ```
 
@@ -119,17 +110,20 @@ There are 3,144 counties in the US (including Alaska and Puerto Rico). In the da
 #### Picture of Subsidized Households
 
 ```{r PSH_county data load, include=FALSE}
-data_county <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH/COUNTY_2012.csv", col_names = T)
+data_county <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/COUNTY_2012.csv", col_names=T)
 ```
 
-```{r PSH_county data transformation}
+```{r PSH county data transformation}
 data_county <- data_county %>%
-  filter(program_label == "Public Housing" & !(is.na(total_units))) %>%
-  select(states, entities, total_units, pct_occupied, people_per_unit, people_total, state) %>%
-  mutate(
-    GEOID = str_sub(entities, -5, -1)
-  ) %>%
-  filter(!(GEOID == "78999") & !(GEOID == "66999")) # removes Guam and VI
+  filter(program_label=="Public Housing" & !(is.na(total_units))) %>%
+  select(states, entities, total_units, pct_occupied, people_total, state) %>%
+  rename(
+    total_units_ph = total_units, 
+    pct_occupied_ph = pct_occupied, 
+    total_pop_ph = people_total
+    ) %>%
+  mutate(GEOID = str_sub(entities,-5,-1)) %>%
+  filter(!(GEOID=="78999") & !(GEOID=="66999")) # removes Guam and VI
 
 head(data_county)
 ```
@@ -137,8 +131,16 @@ The data set is only made of 2,010 observations.
 
 #### Final data set for county level
 
-```{r join_county}
+```{r join county}
 data_combined_county <- full_join(data_ACS_county, data_county, by = ("GEOID"))
+```
+
+```{r join county transformation, include=F}
+data_combined_county <- data_combined_county %>% select(-c("pct_tot_pop","pct_tot_unit")) 
+data_combined_county <- data_combined_county[,c(9,1:3,16,15,20,4:8,19,10:14,17:18)]
+```  
+
+```{r head join county}
 head(data_combined_county)
 ```
 
@@ -149,19 +151,26 @@ head(data_combined_county)
 ##### Ocupied housing units by tenure
 
 ```{r data_units_CBSA, include=F}
-data_unit_CBSA <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS_CBSA/ACS_16_5YR_B25003_with_ann.csv", col_names = T)
+data_unit_CBSA <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/ACS_16_5YR_B25003_CBSA.csv", col_names = T)
 
 colnames(data_unit_CBSA)
 ```
 
 ```{r first changes to data_units}
 data_unit_CBSA <- data_unit_CBSA %>%
+  select(-c(starts_with("HD02_"))) %>%
+  rename(
+    total_units = HD01_VD01,
+    total_units_owner = HD01_VD02,
+    total_units_renter = HD01_VD03
+  ) %>%
   mutate(
-    pct_owner_unit = HD01_VD02 / HD01_VD01 * 100, # percentage of owner occupied units
-    pct_renter_unit = HD01_VD03 / HD01_VD01 * 100, # percentage of renter occupied units
-    total_unit = pct_renter_unit + pct_owner_unit, # check
-    GEOID = str_sub(GEO.id, -5, -1), # for the join
+    pct_owner_unit = total_units_owner/total_units*100,   # percentage of owner occupied units
+    pct_renter_unit = total_units_renter/total_units*100, # percentage of renter occupied units
+    pct_tot_unit = pct_renter_unit + pct_owner_unit,      # check
+    GEOID = str_sub(GEO.id,-5,-1)                         # for the join
   )
+
 ```
 
 ```{r display data_units}
@@ -171,18 +180,23 @@ head(data_unit_CBSA)
 ##### Total population in ocupied housing by tenure
 
 ```{r data_pop_CBSA, include=FALSE}
-data_pop_CBSA <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/ACS_CBSA/ACS_16_5YR_B25033_with_ann.csv", col_names = T)
+data_pop_CBSA <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/ACS_16_5YR_B25033_CBSA.csv", col_names = T)
 colnames(data_pop_CBSA)
 ```
 
 ```{r first changes to data_pop_CBSA}
 data_pop_CBSA <- data_pop_CBSA %>%
-  select(c(1:7), c(20:21)) %>%
+  select(c(1:7),c(18), -c(starts_with("HD02_"))) %>%
+  rename(
+    total_pop = HD01_VD01,
+    total_pop_owner = HD01_VD02,
+    total_pop_renter = HD01_VD08
+  ) %>%
   mutate(
-    pct_owner_pop = HD01_VD02 / HD01_VD01 * 100, # percentage of owner population
-    pct_renter_pop = HD01_VD09 / HD01_VD01 * 100, # percentage of renter population
-    total_pop = pct_renter_pop + pct_owner_pop, # check
-    GEOID = str_sub(GEO.id, -5, -1), # for the join
+    pct_owner_pop = total_pop_owner/total_pop*100,  # percentage of owner population
+    pct_renter_pop= total_pop_renter/total_pop*100, # percentage of renter population
+    pct_tot_pop =pct_renter_pop + pct_owner_pop,    # check
+    GEOID = str_sub(GEO.id,-5,-1)                   # for the join
   )
 ```
 
@@ -195,22 +209,26 @@ head(data_pop_CBSA)
 data_ACS_CBSA <- left_join(data_pop_CBSA, data_unit_CBSA, by = c("GEOID", "GEO.id2", "GEO.id", "GEO.display-label"))
 
 head(data_ACS_CBSA)
+
 ```
 
 #### Picture of Subsidized Households
 
 ```{r PSH_CBSA, include=F}
-data_CBSA <- read_csv2("/Users/Alice/Documents/ENSAE/2A/Warwick/Housing data/PSH/CBSA_2012.csv", col_names = T)
+data_CBSA <- read_csv2("/Users/Alice/University of Warwick/Rathelot, Roland - CB_IL/Alice/housing/data/CBSA_2012.csv", col_names = T)
 ```
 
 ```{r PSH_CBSA first transformations }
 data_CBSA <- data_CBSA %>%
   filter(program_label == "Public Housing" & !(is.na(total_units))) %>%
-  select(states, entities, total_units, pct_occupied, people_per_unit, people_total, state) %>%
-  mutate(
-    GEOID = str_sub(entities, -5, -1)
+  select(entities, total_units, pct_occupied, people_total) %>%
+  rename(
+    total_units_ph = total_units, 
+    pct_occupied_ph=pct_occupied, 
+    total_pop_ph = people_total
   ) %>%
-  filter(!(GEOID == "78999") & !(GEOID == "66999")) # removes Guam and VI
+  mutate(GEOID = str_sub(entities,1,5)) %>%
+  filter(!(GEOID=="78999") & !(GEOID=="66999")) # removes Guam and VI
 
 head(data_CBSA)
 ```
@@ -220,7 +238,14 @@ There are 929 CBSA in the US (including Puerto Rico). Our data set is made of 79
 
 ```{r join CBSA}
 data_combined_CBSA <- full_join(data_ACS_CBSA, data_CBSA, by = ("GEOID"))
-head(data_combined_CBSA)
 ```
 
+```{r join CBSA transformation, include=F}
+data_combined_CBSA <- data_combined_CBSA %>% select(-c("pct_tot_pop","pct_tot_unit"))
+data_combined_CBSA <- data_combined_CBSA[,c(9,1:3,15,4:8,18,10:14,16:17)]
+```
+
+```{r head join CBSA}
+head(data_combined_CBSA)
+```
 
