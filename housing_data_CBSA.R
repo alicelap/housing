@@ -54,7 +54,7 @@ data <- data %>%
 # join of the two data_frames
 data_combined_CBSA <- full_join(data_ACS_CBSA, data, by = ("GEOID"))
 
-# REPRESENTATION GEOGRAPHIQUE 
+# REPRESENTATION GEOGRAPHIQUE  
 
 # Fonds de carte
 mtq_CBSA <- read_sf(

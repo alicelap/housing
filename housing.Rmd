@@ -29,7 +29,7 @@ The variables of interest are the following :
 ### Picture of Subsidized Households
 
 The survey was conducted in 2012. Even though data on multiple programs were available, only data on "Public Housing" were kept. 
-
+ 
 The variable of interest are :  
 - Number of units under contract for federal subsidy and available for occupancy  
 - Occupied units as the % of units available  
